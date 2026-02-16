@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+pydantic_settings
+confluent_kafka
+pymongo
+redis
+
+
