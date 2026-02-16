@@ -24,5 +24,6 @@ class KafkaProducerConfig(BaseSettings):
 
 class MongoConfig(BaseSettings):
     MONGODB_URL: str = Field(default="mongodb://localhost:27017", )
+    DATABASE_NAME: str = Field(default="week_18_proo", )
 
 

@@ -4,5 +4,6 @@ pydantic_settings
 confluent_kafka
 pymongo
 redis
-
+motor
+beanie
 
