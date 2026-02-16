@@ -11,15 +11,10 @@ class Settings(BaseSettings):
     KAFKA_TOPIC: str = Field(default="documents", serialization_alias="topic")
 
 
-
-
-
 class KafkaProducerConfig(BaseSettings):
     KAFKA_BOOTSTRAP_SERVERS: str = Field(default="localhost:9092", serialization_alias="bootstrap.servers")
     KAFKA_CLIENT_ID: str = Field(default="api-service", serialization_alias="client.id")
     KAFKA_ACKS: str = Field(default="all", serialization_alias="acks")
-
-
 
 
 class MongoConfig(BaseSettings):
@@ -27,3 +22,7 @@ class MongoConfig(BaseSettings):
     DATABASE_NAME: str = Field(default="week_18_proo", )
 
 
+class RedisConfig(BaseSettings):
+    REDIS_HOST: str = Field(default="localhost", serialization_alias="host")
+    REDIS_PORT: int = Field(default=6379, serialization_alias="port")
+    DECODE_RESPONSES: bool = Field(default=True, serialization_alias="decode_responses")
