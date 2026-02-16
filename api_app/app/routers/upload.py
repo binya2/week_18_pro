@@ -1,6 +1,6 @@
 from fastapi import APIRouter, UploadFile, status
 
-from ..service.upload_service import UploadService
+from api_app.app.service.upload_service import UploadService
 
 router = APIRouter(prefix="/uploadfile", tags=["upload_router"])
 

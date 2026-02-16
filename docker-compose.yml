@@ -46,8 +46,55 @@ services:
       - app-network
     volumes: [ "./data_vol/redis:/data" ]
 
+  api:
+    build:
+      context: .
+      dockerfile: api_app/Dockerfile
+    container_name: fastapi_app
+    ports:
+      - "8000:8000"
+    environment:
+      - REDIS_HOST=redis_pro
+      - MONGODB_URL=mongodb://mongo_pro:27017
+      - KAFKA_BOOTSTRAP_SERVERS=kafka_pro:29092
+    depends_on:
+      - kafka_pro
+      - mongo_pro
+      - redis_pro
+    networks:
+      - app-network
 
+  kitchen_worker:
+    build:
+      context: .
+      dockerfile: kitchen/Dockerfile
+    container_name: kitchen_worker
+    environment:
+      - REDIS_HOST=redis_pro
+      - MONGODB_URL=mongodb://mongo_pro:27017
+      - KAFKA_BOOTSTRAP_SERVERS=kafka_pro:29092
+    depends_on:
+      - kafka_pro
+      - mongo_pro
+      - redis_pro
+    networks:
+      - app-network
 
+  text_worker:
+    build:
+      context: .
+      dockerfile: text/Dockerfile
+    container_name: text_worker
+    environment:
+      - MONGODB_URL=mongodb://mongo_pro:27017
+      - KAFKA_BOOTSTRAP_SERVERS=kafka_pro:29092
+      - REDIS_HOST=redis_pro
+    depends_on:
+      - kafka_pro
+      - mongo_pro
+      - redis_pro
+    networks:
+      - app-network
 networks:
   app-network:
     driver: bridge

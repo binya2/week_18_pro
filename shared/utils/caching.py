@@ -5,17 +5,21 @@ from typing import Callable
 from shared.database.redis_connection import redis_manager
 
 
+def generate_cache_key(func_name: str, *args, **kwargs) -> str:
+    clean_args = list(args)
+    if clean_args and hasattr(clean_args[0], '__class__') and not isinstance(clean_args[0], (str, int, float, bool)):
+        clean_args = clean_args[1:]
+
+    args_repr = f"{clean_args}:{kwargs}"
+    args_hash = hashlib.md5(args_repr.encode()).hexdigest()
+    return f"cache:{func_name}:{args_hash}"
+
+
 def cache(expire: int = 60):
     def decorator(func: Callable):
         @functools.wraps(func)
         async def wrapper(*args, **kwargs):
-            clean_args = list(args)
-            if clean_args and hasattr(clean_args[0], '__class__') and not isinstance(clean_args[0],
-                                                                                     (str, int, float, bool)):
-                clean_args = clean_args[1:]
-            args_repr = f"{clean_args}:{kwargs}"
-            args_hash = hashlib.md5(args_repr.encode()).hexdigest()
-            cache_key = f"cache:{func.__name__}:{args_hash}"
+            cache_key = generate_cache_key(func.__name__, *args, **kwargs)
             redis = redis_manager.get_client()
             try:
                 cached_data = await redis.get(cache_key)
@@ -30,7 +34,6 @@ def cache(expire: int = 60):
             result = await func(*args, **kwargs)
             if not result:
                 return None
-
             try:
                 if hasattr(result, 'model_dump_json'):
                     data_to_store = result.model_dump_json()

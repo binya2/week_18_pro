@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import Optional
 
 from beanie import Document
 from pydantic import Field
@@ -17,6 +18,9 @@ class PizzaOrders(Document):
     is_delivery: bool
     special_instructions: str = Field(default="")
     status: Status = Field(default=Status.PREPARING)
+
+    allergies_flagged: bool = Field(default=False)
+    cleaned_protocol: Optional[str] = None
 
     class Settings:
         name = "pizza_orders"

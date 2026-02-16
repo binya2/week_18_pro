@@ -2,7 +2,7 @@ import uvicorn
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
-from routers import order_router, upload_router
+from api_app.app.routers import order_router, upload_router
 from shared.config import settings
 from shared.models import PizzaOrders
 from shared.database.mongo_connection import mongo_manager

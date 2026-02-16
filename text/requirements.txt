@@ -1,0 +1,6 @@
+motor
+beanie
+confluent-kafka
+pydantic
+pydantic-settings
+redis

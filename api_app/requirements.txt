@@ -6,4 +6,4 @@ pymongo
 redis
 motor
 beanie
-
+python-multipart

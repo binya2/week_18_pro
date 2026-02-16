@@ -1,11 +1,12 @@
 from pydantic import Field
 from pydantic_settings import BaseSettings
 
-
 class Settings(BaseSettings):
-    # --- SERVER ---
-    PROJECT_NAME: str = "Pizza Order API"
+    # --- SERVER SETTINGS (הוסף את אלו) ---
+    SERVER_HOST: str = Field(default="0.0.0.0")
+    SERVER_PORT: int = Field(default=8000)
     DEBUG: bool = True
+    PROJECT_NAME: str = "Pizza Order API"
 
     # --- MONGO ---
     MONGODB_URL: str = Field(default="mongodb://localhost:27017")
@@ -30,16 +31,7 @@ class Settings(BaseSettings):
             return f"redis://:{self.REDIS_PASSWORD}@{self.REDIS_HOST}:{self.REDIS_PORT}"
         return f"redis://{self.REDIS_HOST}:{self.REDIS_PORT}"
 
-    def get_kafka_producer_config(self) -> dict:
-        return {
-            "bootstrap.servers": self.KAFKA_BOOTSTRAP_SERVERS,
-            "client.id": self.KAFKA_CLIENT_ID,
-            "acks": self.KAFKA_ACKS,
-            "linger.ms": 10
-        }
-
     class Config:
         env_file = ".env"
-
 
 settings = Settings()
