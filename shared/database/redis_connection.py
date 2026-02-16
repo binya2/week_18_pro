@@ -33,5 +33,4 @@ class RedisManager:
             raise RuntimeError("Redis not initialized.")
         return self.client
 
-# יצירת הסינגלטון
 redis_manager = RedisManager()

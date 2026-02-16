@@ -2,7 +2,7 @@ from typing import List
 from beanie import init_beanie
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
 
-from shared.config import settings  # <--- הייבוא החדש
+from shared.config import settings
 
 
 class MongoManager:
@@ -30,5 +30,4 @@ class MongoManager:
             print("MongoDB connection closed.")
 
 
-# יצירת הסינגלטון
 mongo_manager = MongoManager()
