@@ -8,14 +8,6 @@ class Status(str, Enum):
     PREPARING = "preparing"
     DELIVERED = "delivered"
 
-class PizzaRequest(Document):
-    order_id: str
-    pizza_type: str
-    size: str = Field(default="medium")
-    quantity: int = Field(default=1)
-    is_delivery: bool
-    special_instructions: str = Field(default="")
-
 
 class PizzaOrders(Document):
     order_id: str
@@ -24,5 +16,7 @@ class PizzaOrders(Document):
     quantity: int = Field(default=1)
     is_delivery: bool
     special_instructions: str = Field(default="")
-    status: Status = Field(default="preparing")
+    status: Status = Field(default=Status.PREPARING)
 
+    class Settings:
+        name = "pizza_orders"

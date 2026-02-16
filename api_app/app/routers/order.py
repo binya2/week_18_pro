@@ -1,10 +1,15 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
+from ..service.orders_service import OrderService
 
 router = APIRouter(prefix="/order", tags=["order_router"])
 
-@router.get("/order/{order_id}")
-async def read_order(order_id: int):
+
+@router.get("/{order_id}")
+async def read_order(order_id: str):
+    result = await OrderService.get_order_by_id(order_id)
+    if not result:
+        raise HTTPException(status_code=404, detail="Order not found")
     return {
-        "order_id": order_id,
-        "description": "Pizza with cheese"
+        "order": result["data"],
+        "source": result["source"]
     }
