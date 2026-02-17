@@ -165,8 +165,7 @@ dmypy.json
 # pytype static type analyzer
 .pytype/
 
-repo_to_text.py
-full_project_context.txt
+/client
 
 # Cython debug symbols
 cython_debug/
