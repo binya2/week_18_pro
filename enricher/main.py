@@ -35,7 +35,7 @@ async def consume():
                 await EnrichmentService.process_pizza(data)
 
             except Exception as e:
-                print(f"❌ Error processing message: {e}")
+                print(f"Error processing message: {e}")
 
     finally:
         print("Shutting down worker...")

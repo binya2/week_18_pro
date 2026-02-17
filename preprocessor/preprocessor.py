@@ -7,8 +7,6 @@ from shared.database.kafka_connection import kafka_manager
 from shared.models import PizzaOrders, PizzaRecipe, PizzaAnalysisResult
 from shared.config import settings
 
-KEYWORDS = ["allergy", "peanut", "gluten"]
-
 
 def clean_text(text: str) -> str:
     if not text:
@@ -19,6 +17,8 @@ def clean_text(text: str) -> str:
 
 async def process_text(msg):
     try:
+        if not msg.value():
+            return None
         data = json.loads(msg.value().decode('utf-8'))
 
         pizza_type = data.get('pizza_type', "").lower()
@@ -27,22 +27,26 @@ async def process_text(msg):
         special_instructions_instructions = data.get('special_instructions', "").lower()
         special_instructions_cleaned = clean_text(special_instructions_instructions)
 
-        pizza_recipes = await PizzaRecipe.find_one(PizzaRecipe.pizza_type == pizza_type)
+        pizza_recipe_doc = await PizzaRecipe.find_one(
+            {"pizza_type": {"$regex": f"^{re.escape(pizza_type)}$", "$options": "i"}}
+        )
         pizza_recipes_cleaned = ""
-        if pizza_recipes:
-            pizza_recipes_cleaned = clean_text(pizza_recipes.instructions)
+        if pizza_recipe_doc:
+            pizza_recipes_cleaned = clean_text(pizza_recipe_doc.instructions)
 
-        return PizzaAnalysisResult(order_id=order_id,
-                                   pizza_type=pizza_type,
-                                   special_instructions=special_instructions_cleaned,
-                                   recipes=pizza_recipes_cleaned)
+        return PizzaAnalysisResult(
+            order_id=order_id,
+            pizza_type=pizza_type,
+            special_instructions=special_instructions_cleaned,
+            recipes=pizza_recipes_cleaned
+        )
 
     except Exception as e:
         print(f"Error processing message: {e}")
 
 
 async def worker():
-    await mongo_manager.connect(document_models=[PizzaOrders])
+    await mongo_manager.connect(document_models=[PizzaOrders, PizzaRecipe])
     consumer = kafka_manager.get_consumer(
         topics=[settings.KAFKA_CONSUMER_TOPIC],
         group_id="preprocessor-team"
@@ -55,12 +59,13 @@ async def worker():
                 continue
             if msg.error():
                 continue
-            data = await process_text(msg)
-            producer.produce(
-                topic=settings.KAFKA_PRODUCER_TOPIC,
-                key=data.order_id,
-                value=data.model_dump_json().encode('utf-8')
-            )
+            processed_result = await process_text(msg)
+            if processed_result:
+                producer.produce(
+                    topic=settings.KAFKA_PRODUCER_TOPIC,
+                    key=processed_result.order_id,
+                    value=processed_result.model_dump_json().encode('utf-8')
+                )
             producer.poll(0)
     finally:
         producer.flush()
