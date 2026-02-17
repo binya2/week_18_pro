@@ -43,7 +43,7 @@ def cache(expire: int = 60):
                     data_to_store = json.dumps(result, default=str)
                 await redis.set(cache_key, data_to_store, ex=expire)
             except Exception as e:
-                print(f"⚠️ Redis write error: {e}")
+                print(f"Redis write error: {e}")
             return {
                 "data": result,
                 "source": "mongodb"

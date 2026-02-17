@@ -17,12 +17,10 @@ async def process_order(msg):
         if order:
             order.status = Status.DELIVERED
             await order.save()
-            print(f"✅ Kitchen: Order {order_id} is READY (Delivered).")
 
             redis = redis_manager.get_client()
             cache_key = generate_cache_key("get_order", order_id)
             await redis.delete(cache_key)
-            print(f"🗑️ Kitchen: Cache invalidated for {cache_key}")
 
     except Exception as e:
         print(f"Error processing message: {e}")
@@ -35,7 +33,6 @@ async def consume():
         topics=[settings.KAFKA_TOPIC],
         group_id="kitchen-team"
     )
-    print("👨‍🍳 Kitchen Worker Started. Waiting for orders...")
     try:
         while True:
             msg = await asyncio.to_thread(consumer.poll, 1.0)
