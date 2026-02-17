@@ -1,0 +1,100 @@
+version: '3.8'
+
+services:
+  # --- Kafka Service ---
+  kafka_pro:
+    image: confluentinc/cp-kafka:7.8.3
+    container_name: kafka
+    user: root
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_LISTENERS: INTERNAL://0.0.0.0:29092,EXTERNAL://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka_pro:29092,EXTERNAL://localhost:9092
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka_pro:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+      CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
+    volumes:
+      - ./data_vol/kafka_pro:/var/lib/kafka/data
+    networks:
+      - app-network
+
+  # --- MongoDB Service ---
+  mongo_pro:
+    image: mongo:latest
+    container_name: mongo_pro
+    ports:
+      - "27017:27017"
+    networks:
+      - app-network
+    volumes: [ "./data_vol/mongo:/data/db" ]
+
+  redis_pro:
+    image: redis:latest
+    container_name: redis_pro
+    ports:
+      - "6379:6379"
+    networks:
+      - app-network
+    volumes: [ "./data_vol/redis:/data" ]
+
+  api:
+    build:
+      context: .
+      dockerfile: api_app/Dockerfile
+    container_name: fastapi_app
+    ports:
+      - "8000:8000"
+    environment:
+      - REDIS_HOST=redis_pro
+      - MONGODB_URL=mongodb://mongo_pro:27017
+      - KAFKA_BOOTSTRAP_SERVERS=kafka_pro:29092
+    depends_on:
+      - kafka_pro
+      - mongo_pro
+      - redis_pro
+    networks:
+      - app-network
+
+  kitchen_worker:
+    build:
+      context: .
+      dockerfile: kitchen/Dockerfile
+    container_name: kitchen_worker
+    environment:
+      - REDIS_HOST=redis_pro
+      - MONGODB_URL=mongodb://mongo_pro:27017
+      - KAFKA_BOOTSTRAP_SERVERS=kafka_pro:29092
+    depends_on:
+      - kafka_pro
+      - mongo_pro
+      - redis_pro
+    networks:
+      - app-network
+
+  text_worker:
+    build:
+      context: .
+      dockerfile: text/Dockerfile
+    container_name: text_worker
+    environment:
+      - MONGODB_URL=mongodb://mongo_pro:27017
+      - KAFKA_BOOTSTRAP_SERVERS=kafka_pro:29092
+      - REDIS_HOST=redis_pro
+    depends_on:
+      - kafka_pro
+      - mongo_pro
+      - redis_pro
+    networks:
+      - app-network
+networks:
+  app-network:
+    driver: bridge
