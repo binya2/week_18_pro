@@ -8,6 +8,7 @@ from pydantic import Field, BaseModel
 class Status(str, Enum):
     PREPARING = "preparing"
     DELIVERED = "delivered"
+    BURNT = "burnt"
 
 
 class PizzaOrders(Document):
@@ -20,7 +21,9 @@ class PizzaOrders(Document):
     status: Status = Field(default=Status.PREPARING)
 
     allergies_flagged: bool = Field(default=False)
-    cleaned_protocol: Optional[str] = None
+    is_meat: bool = Field(default=False)
+    is_dairy: bool = Field(default=True)
+    is_kosher: bool = Field(default=False)
 
     class Settings:
         name = "pizza_orders"
