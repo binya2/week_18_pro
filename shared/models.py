@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Optional
+from typing import Optional, List
 
 from beanie import Document
 from pydantic import Field
@@ -24,3 +24,21 @@ class PizzaOrders(Document):
 
     class Settings:
         name = "pizza_orders"
+
+
+class PizzaAnalysis(Document):
+    common_allergens: List[str]
+    forbidden_non_kosher: List[str]
+    meat_ingredients: List[str]
+    dairy_ingredients: List[str]
+
+    class Settings:
+        name = "pizza_analysis"
+
+
+class PizzaRecipe(Document):
+    pizza_type: str
+    instructions: str
+
+    class Settings:
+        name = "pizza_recipes"

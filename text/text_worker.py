@@ -36,10 +36,11 @@ async def process_text(msg):
 
 async def consume():
     await mongo_manager.connect(document_models=[PizzaOrders])
-    consumer = kafka_manager.create_consumer(
+    consumer = kafka_manager.get_consumer(
         topics=[settings.KAFKA_TOPIC],
         group_id="text-team"
     )
+
     try:
         while True:
             msg = consumer.poll(1.0)

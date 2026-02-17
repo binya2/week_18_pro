@@ -45,7 +45,7 @@ class KafkaManager:
         return self._producer
 
     @staticmethod
-    def create_consumer(topics: List[str], group_id: str = None) -> Consumer:
+    def get_consumer(topics: List[str], group_id: str = None) -> Consumer:
         gid = group_id or settings.KAFKA_CONSUMER_GROUP
 
         conf = {

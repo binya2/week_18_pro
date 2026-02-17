@@ -4,7 +4,7 @@ from fastapi import FastAPI
 
 from api_app.app.routers import order_router, upload_router
 from shared.config import settings
-from shared.models import PizzaOrders
+from shared.models import PizzaOrders, PizzaAnalysis, PizzaRecipe
 from shared.database.mongo_connection import mongo_manager
 from shared.database.redis_connection import redis_manager
 from shared.database.kafka_connection import kafka_manager
@@ -13,7 +13,8 @@ from shared.database.kafka_connection import kafka_manager
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     print("Starting up services...")
-    await mongo_manager.connect(document_models=[PizzaOrders])
+    models: list = [PizzaOrders, PizzaAnalysis, PizzaRecipe]
+    await mongo_manager.connect(document_models=models)
     await redis_manager.connect()
     kafka_manager.start()
     yield
