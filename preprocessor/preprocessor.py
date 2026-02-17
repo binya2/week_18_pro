@@ -1,0 +1,73 @@
+import asyncio
+import json
+import re
+
+from shared.database.mongo_connection import mongo_manager
+from shared.database.kafka_connection import kafka_manager
+from shared.models import PizzaOrders, PizzaRecipe, PizzaAnalysisResult
+from shared.config import settings
+
+KEYWORDS = ["allergy", "peanut", "gluten"]
+
+
+def clean_text(text: str) -> str:
+    if not text:
+        return ""
+    cleaned = re.sub(r'[^\w\s]', '', text)
+    return cleaned.lower()
+
+
+async def process_text(msg):
+    try:
+        data = json.loads(msg.value().decode('utf-8'))
+
+        pizza_type = data.get('pizza_type', "").lower()
+        order_id = data.get('order_id')
+
+        special_instructions_instructions = data.get('special_instructions', "").lower()
+        special_instructions_cleaned = clean_text(special_instructions_instructions)
+
+        pizza_recipes = await PizzaRecipe.find_one(PizzaRecipe.pizza_type == pizza_type)
+        pizza_recipes_cleaned = ""
+        if pizza_recipes:
+            pizza_recipes_cleaned = clean_text(pizza_recipes.instructions)
+
+        return PizzaAnalysisResult(order_id=order_id,
+                                   pizza_type=pizza_type,
+                                   special_instructions=special_instructions_cleaned,
+                                   recipes=pizza_recipes_cleaned)
+
+    except Exception as e:
+        print(f"Error processing message: {e}")
+
+
+async def worker():
+    await mongo_manager.connect(document_models=[PizzaOrders])
+    consumer = kafka_manager.get_consumer(
+        topics=[settings.KAFKA_CONSUMER_TOPIC],
+        group_id="preprocessor-team"
+    )
+    producer = kafka_manager.get_producer()
+    try:
+        while True:
+            msg = consumer.poll(1.0)
+            if msg is None:
+                continue
+            if msg.error():
+                continue
+            data = await process_text(msg)
+            producer.produce(
+                topic=settings.KAFKA_PRODUCER_TOPIC,
+                key=data.order_id,
+                value=data.model_dump_json().encode('utf-8')
+            )
+            producer.poll(0)
+    finally:
+        producer.flush()
+        consumer.close()
+        producer.close()
+        await mongo_manager.close()
+
+
+if __name__ == "__main__":
+    asyncio.run(worker())

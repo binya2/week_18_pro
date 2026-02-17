@@ -2,7 +2,7 @@ from enum import Enum
 from typing import Optional, List
 
 from beanie import Document
-from pydantic import Field
+from pydantic import Field, BaseModel
 
 
 class Status(str, Enum):
@@ -42,3 +42,10 @@ class PizzaRecipe(Document):
 
     class Settings:
         name = "pizza_recipes"
+
+
+class PizzaAnalysisResult(BaseModel):
+    order_id: str
+    pizza_type: str
+    special_instructions: str
+    recipes: str

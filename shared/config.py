@@ -22,7 +22,8 @@ class Settings(BaseSettings):
     KAFKA_BOOTSTRAP_SERVERS: str = Field(default="localhost:9092")
     KAFKA_CLIENT_ID: str = Field(default="api-service")
     KAFKA_ACKS: str = Field(default="all")
-    KAFKA_TOPIC: str = Field(default="default-topic")
+    KAFKA_CONSUMER_TOPIC: str = Field(default="default-consumer-topic")
+    KAFKA_PRODUCER_TOPIC: str = Field(default="default-producer-topic")
     KAFKA_CONSUMER_GROUP: str = Field(default="default-consumers")
 
     @property

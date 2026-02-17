@@ -94,7 +94,7 @@ class UploadService:
         for order in orders_list:
             order_json = order.model_dump_json()
             producer.produce(
-                topic=settings.KAFKA_TOPIC,
+                topic=settings.KAFKA_PRODUCER_TOPIC,
                 key=str(order.order_id),
                 value=order_json.encode('utf-8')
             )

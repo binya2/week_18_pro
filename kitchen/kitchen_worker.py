@@ -30,7 +30,7 @@ async def consume():
     await mongo_manager.connect(document_models=[PizzaOrders])
     await redis_manager.connect()
     consumer = kafka_manager.get_consumer(
-        topics=[settings.KAFKA_TOPIC],
+        topics=[settings.KAFKA_CONSUMER_TOPIC],
         group_id="kitchen-team"
     )
     try:
