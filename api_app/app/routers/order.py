@@ -9,6 +9,5 @@ async def read_order(order_id: str):
     if not result:
         raise HTTPException(status_code=404, detail="Order not found")
     return {
-        "order": result["data"],
-        "source": result["source"]
+        "order": result
     }

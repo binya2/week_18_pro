@@ -1,0 +1,97 @@
+# --- API Service ---
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-service
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8000
+      targetPort: 8000
+  selector:
+    app: api
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api
+  template:
+    metadata:
+      labels:
+        app: api
+    spec:
+      containers:
+        - name: api
+          image: beni2/pizza-api:v1
+          ports:
+            - containerPort: 8000
+          env:
+            - name: REDIS_HOST
+              value: "redis-pro"
+            - name: MONGODB_URL
+              value: "mongodb://mongo-pro:27017"
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              value: "kafka-pro:29092"
+            - name: KAFKA_PRODUCER_TOPIC
+              value: "pizza-orders"
+
+# --- Workers ---
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: enricher
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: enricher
+  template:
+    metadata:
+      labels:
+        app: enricher
+    spec:
+      containers:
+        - name: enricher
+          image: beni2/pizza-enricher:v1
+          env:
+            - name: REDIS_HOST
+              value: "redis-pro"
+            - name: MONGODB_URL
+              value: "mongodb://mongo-pro:27017"
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              value: "kafka-pro:29092"
+            - name: KAFKA_CONSUMER_TOPIC
+              value: "cleaned-instructions"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: preprocessor
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: preprocessor
+  template:
+    metadata:
+      labels:
+        app: preprocessor
+    spec:
+      containers:
+        - name: preprocessor
+          image: beni2/pizza-preprocessor:v1
+          env:
+            - name: MONGODB_URL
+              value: "mongodb://mongo-pro:27017"
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              value: "kafka-pro:29092"
+            - name: KAFKA_CONSUMER_TOPIC
+              value: "pizza-orders"
+            - name: KAFKA_PRODUCER_TOPIC
+              value: "cleaned-instructions"

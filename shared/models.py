@@ -24,7 +24,7 @@ class PizzaOrders(Document):
     is_meat: bool = Field(default=False)
     is_dairy: bool = Field(default=True)
     is_kosher: bool = Field(default=False)
-    updated_by: str = Field(default="")
+    updated_by: str = Field(default="mongo_db")
 
     class Settings:
         name = "pizza_orders"
