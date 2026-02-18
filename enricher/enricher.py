@@ -22,19 +22,23 @@ class EnrichmentService:
 
     @staticmethod
     @cache(expire=60)
-    def analyze_text(text: str, rules: Dict[str, List[str]]) -> Dict[str, List[str]]:
-        text = text.lower()
-        report = {}
+    async def analyze_text(text: str, rules: Dict[str, List[str]]) -> Dict[str, List[str]]:
+        try:
+            text = text.lower()
+            report = {}
 
-        for category, keywords in rules.items():
-            found = []
-            for keyword in keywords:
-                pattern = r'\b' + re.escape(keyword.lower()) + r'\b'
-                if re.search(pattern, text):
-                    found.append(keyword)
-            if found:
-                report[category] = found
-        return report
+            for category, keywords in rules.items():
+                found = []
+                for keyword in keywords:
+                    pattern = r'\b' + re.escape(keyword.lower()) + r'\b'
+                    if re.search(pattern, text):
+                        found.append(keyword)
+                if found:
+                    report[category] = found
+            return report
+        except Exception as e:
+            print(f"Error analyzing text: {e}")
+            return {}
 
     @staticmethod
     async def process_pizza(order_data: dict):
@@ -46,10 +50,15 @@ class EnrichmentService:
             print("No analysis rules found!")
             return
 
-        analysis_result = EnrichmentService.analyze_text(recipe_text, rules)
+        result = await EnrichmentService.analyze_text(recipe_text, rules)
+        if not result:
+            print(f"Skipping order {order_id}: Analysis returned no result.")
+            return
+        analysis_result = result["data"]
 
         order = await PizzaOrders.find_one(PizzaOrders.order_id == order_id)
         if not order:
+            print(f"Order {order_id} not found in database.")
             return
 
         has_meat = bool(analysis_result.get("meat_ingredients"))
@@ -58,7 +67,7 @@ class EnrichmentService:
 
         order.is_meat = has_meat
         order.is_dairy = has_dairy
-
+        order.updated_by = result['source']
         is_kosher = True
         if has_forbidden:
             is_kosher = False

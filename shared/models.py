@@ -24,6 +24,7 @@ class PizzaOrders(Document):
     is_meat: bool = Field(default=False)
     is_dairy: bool = Field(default=True)
     is_kosher: bool = Field(default=False)
+    updated_by: str = Field(default="")
 
     class Settings:
         name = "pizza_orders"

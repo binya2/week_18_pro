@@ -1,7 +1,7 @@
 import asyncio
 import json
 
-from enricher.enricher import EnrichmentService
+from enricher import EnrichmentService
 from shared.database.mongo_connection import mongo_manager
 from shared.database.redis_connection import redis_manager
 from shared.database.kafka_connection import kafka_manager
@@ -12,9 +12,10 @@ from shared.config import settings
 async def consume():
     await mongo_manager.connect(document_models=[PizzaOrders, PizzaAnalysis])
     await redis_manager.connect()
+    kafka_manager.start()
 
-    consumer = kafka_manager.create_consumer(
-        topics=[settings.KAFKA_TOPIC],
+    consumer = kafka_manager.get_consumer(
+        topics=[settings.KAFKA_CONSUMER_TOPIC],
         group_id="enricher-team"
     )
 

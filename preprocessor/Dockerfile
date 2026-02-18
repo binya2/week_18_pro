@@ -2,13 +2,13 @@ FROM python:3.10-slim
 
 WORKDIR /app
 
-COPY text/requirements.txt .
+COPY preprocessor/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY shared /app/shared
 
-COPY text /app/text
+COPY preprocessor /app/preprocessor
 
 ENV PYTHONPATH=/app
 
-CMD ["python", "text/text_worker.py"]
+CMD ["python", "preprocessor/preprocessor.py"]

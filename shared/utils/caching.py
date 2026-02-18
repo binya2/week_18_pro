@@ -32,7 +32,7 @@ def cache(expire: int = 60):
                 print(f"Redis read error: {e}")
 
             result = await func(*args, **kwargs)
-            if not result:
+            if result is None:
                 return None
             try:
                 if hasattr(result, 'model_dump_json'):

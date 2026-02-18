@@ -6,6 +6,10 @@ from shared.database.mongo_connection import mongo_manager
 from shared.database.kafka_connection import kafka_manager
 from shared.models import PizzaOrders, PizzaRecipe, PizzaAnalysisResult
 from shared.config import settings
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 def clean_text(text: str) -> str:
@@ -21,18 +25,19 @@ async def process_text(msg):
             return None
         data = json.loads(msg.value().decode('utf-8'))
 
-        pizza_type = data.get('pizza_type', "").lower()
+        pizza_type = data.get('pizza_type', "")
         order_id = data.get('order_id')
 
         special_instructions_instructions = data.get('special_instructions', "").lower()
         special_instructions_cleaned = clean_text(special_instructions_instructions)
 
-        pizza_recipe_doc = await PizzaRecipe.find_one(
-            {"pizza_type": {"$regex": f"^{re.escape(pizza_type)}$", "$options": "i"}}
-        )
+        pizza_recipe_doc = await PizzaRecipe.find_one({"pizza_type":pizza_type})
         pizza_recipes_cleaned = ""
         if pizza_recipe_doc:
             pizza_recipes_cleaned = clean_text(pizza_recipe_doc.instructions)
+            logger.info(f"Recipe found for: {pizza_type}")
+        else:
+            logger.warning(f"No recipe found for: {pizza_type}")
 
         return PizzaAnalysisResult(
             order_id=order_id,
@@ -42,16 +47,18 @@ async def process_text(msg):
         )
 
     except Exception as e:
-        print(f"Error processing message: {e}")
-
+        logger.error(f"Error: {e}")
+        return None
 
 async def worker():
     await mongo_manager.connect(document_models=[PizzaOrders, PizzaRecipe])
+    kafka_manager.start()
     consumer = kafka_manager.get_consumer(
         topics=[settings.KAFKA_CONSUMER_TOPIC],
         group_id="preprocessor-team"
     )
     producer = kafka_manager.get_producer()
+    logger.info("Preprocessor Worker Started")
     try:
         while True:
             msg = consumer.poll(1.0)
@@ -70,7 +77,6 @@ async def worker():
     finally:
         producer.flush()
         consumer.close()
-        producer.close()
         await mongo_manager.close()
 
 

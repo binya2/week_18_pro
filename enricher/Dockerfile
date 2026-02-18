@@ -2,13 +2,13 @@ FROM python:3.10-slim
 
 WORKDIR /app
 
-COPY kitchen/requirements.txt .
+COPY enricher/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY shared /app/shared
 
-COPY kitchen /app/kitchen
+COPY enricher /app/enricher
 
 ENV PYTHONPATH=/app
 
-CMD ["python", "kitchen/kitchen_worker.py"]
+CMD ["python", "enricher/main.py"]

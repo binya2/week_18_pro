@@ -57,6 +57,7 @@ services:
       - REDIS_HOST=redis_pro
       - MONGODB_URL=mongodb://mongo_pro:27017
       - KAFKA_BOOTSTRAP_SERVERS=kafka_pro:29092
+      - KAFKA_PRODUCER_TOPIC=pizza-orders
     depends_on:
       - kafka_pro
       - mongo_pro
@@ -64,15 +65,17 @@ services:
     networks:
       - app-network
 
-  kitchen_worker:
+  enricher:
     build:
       context: .
-      dockerfile: kitchen/Dockerfile
-    container_name: kitchen_worker
+      dockerfile: enricher/Dockerfile
+    container_name: enricher
     environment:
       - REDIS_HOST=redis_pro
       - MONGODB_URL=mongodb://mongo_pro:27017
       - KAFKA_BOOTSTRAP_SERVERS=kafka_pro:29092
+      - KAFKA_CONSUMER_TOPIC=cleaned-instructions
+
     depends_on:
       - kafka_pro
       - mongo_pro
@@ -80,15 +83,17 @@ services:
     networks:
       - app-network
 
-  text_worker:
+  preprocessor:
     build:
       context: .
-      dockerfile: text/Dockerfile
-    container_name: text_worker
+      dockerfile: preprocessor/Dockerfile
+    container_name: preprocessor
     environment:
       - MONGODB_URL=mongodb://mongo_pro:27017
       - KAFKA_BOOTSTRAP_SERVERS=kafka_pro:29092
       - REDIS_HOST=redis_pro
+      - KAFKA_CONSUMER_TOPIC=pizza-orders
+      - KAFKA_PRODUCER_TOPIC=cleaned-instructions
     depends_on:
       - kafka_pro
       - mongo_pro
