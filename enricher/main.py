@@ -39,7 +39,7 @@ async def worker():
                 if result:
                     producer.produce(
                         topic=settings.KAFKA_PRODUCER_TOPIC,
-                        key=result.order_id,
+                        key=result['order_id'],
                         value=json.dumps(result).encode('utf-8')
                     )
             except Exception as e:

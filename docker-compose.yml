@@ -75,6 +75,7 @@ services:
       - MONGODB_URL=mongodb://mongo_pro:27017
       - KAFKA_BOOTSTRAP_SERVERS=kafka_pro:29092
       - KAFKA_CONSUMER_TOPIC=cleaned-instructions
+      - KAFKA_PRODUCER_TOPIC=risk-evaluator
 
     depends_on:
       - kafka_pro
@@ -109,7 +110,7 @@ services:
     environment:
       - MONGODB_URL=mongodb://mongo_pro:27017
       - KAFKA_BOOTSTRAP_SERVERS=kafka_pro:29092
-      - KAFKA_CONSUMER_TOPIC=risk_evaluator
+      - KAFKA_CONSUMER_TOPIC=risk-evaluator
     depends_on:
       - kafka_pro
       - mongo_pro

@@ -7,8 +7,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY shared /app/shared
 
-COPY risk /app/risk
+COPY preprocessor /app/preprocessor
 
 ENV PYTHONPATH=/app
 
-CMD ["python", "risk/risk_evaluator.py"]
+CMD ["python", "preprocessor/preprocessor.py"]
