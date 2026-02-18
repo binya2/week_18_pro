@@ -1,8 +1,12 @@
+import logging
 import re
 from typing import Dict, List, Any
-
+from datetime import datetime
 from shared.models import PizzaOrders, PizzaAnalysis, Status
 from shared.utils.caching import cache
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 class EnrichmentService:
@@ -22,7 +26,7 @@ class EnrichmentService:
 
     @staticmethod
     @cache(expire=60)
-    async def analyze_text(text: str, rules: Dict[str, List[str]]) -> Dict[str, List[str]]:
+    async def analyze_text(text: str, rules: Dict[str, List[str]]) -> Dict[str, Any]:
         try:
             text = text.lower()
             report = {}
@@ -37,7 +41,7 @@ class EnrichmentService:
                     report[category] = found
             return report
         except Exception as e:
-            print(f"Error analyzing text: {e}")
+            logger.error(f"Error analyzing text: {e}")
             return {}
 
     @staticmethod
@@ -47,18 +51,18 @@ class EnrichmentService:
 
         rules = await EnrichmentService.get_analysis_rules()
         if not rules:
-            print("No analysis rules found!")
+            logger.warning("No analysis rules found!")
             return
 
         result = await EnrichmentService.analyze_text(recipe_text, rules)
         if not result:
-            print(f"Skipping order {order_id}: Analysis returned no result.")
+            logger.info(f"Skipping order {order_id}: Analysis returned no result.")
             return
         analysis_result = result["data"]
 
         order = await PizzaOrders.find_one(PizzaOrders.order_id == order_id)
         if not order:
-            print(f"Order {order_id} not found in database.")
+            logger.info(f"Order {order_id} not found in database.")
             return
 
         has_meat = bool(analysis_result.get("meat_ingredients"))
@@ -68,6 +72,8 @@ class EnrichmentService:
         order.is_meat = has_meat
         order.is_dairy = has_dairy
         order.updated_by = result['source']
+        order.insert_date = datetime.now()
+
         is_kosher = True
         if has_forbidden:
             is_kosher = False
@@ -79,5 +85,7 @@ class EnrichmentService:
         else:
             order.status = Status.BURNT
 
-        order.allergies_flagged = bool(analysis_result.get("common_allergens"))
+        logger.info(f"Order {order_id} updated with status {order.status.name}.")
+
+        # order.allergies_flagged = bool(analysis_result.get("common_allergens"))
         await order.save()

@@ -1,5 +1,6 @@
 import asyncio
 import json
+import logging
 
 from enricher import EnrichmentService
 from shared.database.mongo_connection import mongo_manager
@@ -7,9 +8,10 @@ from shared.database.redis_connection import redis_manager
 from shared.database.kafka_connection import kafka_manager
 from shared.models import PizzaOrders, PizzaAnalysis
 from shared.config import settings
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-
-async def consume():
+async def worker():
     await mongo_manager.connect(document_models=[PizzaOrders, PizzaAnalysis])
     await redis_manager.connect()
     kafka_manager.start()
@@ -18,32 +20,35 @@ async def consume():
         topics=[settings.KAFKA_CONSUMER_TOPIC],
         group_id="enricher-team"
     )
+    producer = kafka_manager.get_producer()
 
-    print("🕵️ Enricher Worker Started...")
-
+    logger.info("🕵️ Enricher Worker Started...")
     try:
         while True:
             msg = consumer.poll(1.0)
-
             if msg is None:
                 continue
             if msg.error():
-                print(f"Consumer error: {msg.error()}")
+                logger.error(f"Consumer error: {msg.error()}")
                 continue
-
             try:
                 data = json.loads(msg.value().decode('utf-8'))
-                await EnrichmentService.process_pizza(data)
-
+                result = await EnrichmentService.process_pizza(data)
+                if result:
+                    producer.produce(
+                        topic=settings.KAFKA_PRODUCER_TOPIC,
+                        key=result.order_id,
+                        value=json.dumps(result).encode('utf-8')
+                    )
             except Exception as e:
-                print(f"Error processing message: {e}")
-
+                logger.error(f"Error processing message: {e}")
     finally:
-        print("Shutting down worker...")
+        logger.info("Shutting down worker...")
         consumer.close()
+        producer.flush()
         await mongo_manager.close()
         await redis_manager.close()
 
 
 if __name__ == "__main__":
-    asyncio.run(consume())
+    asyncio.run(worker())
