@@ -158,7 +158,7 @@ spec:
               value: "MkU3OEVBNTcwNTJENDM2Qk"
           readinessProbe:
             exec:
-              command: ["kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
+              command: [ "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092" ]
             initialDelaySeconds: 20
             periodSeconds: 10
             timeoutSeconds: 10

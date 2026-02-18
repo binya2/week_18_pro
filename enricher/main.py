@@ -8,8 +8,10 @@ from shared.database.redis_connection import redis_manager
 from shared.database.kafka_connection import kafka_manager
 from shared.models import PizzaOrders, PizzaAnalysis
 from shared.config import settings
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
 
 async def worker():
     await mongo_manager.connect(document_models=[PizzaOrders, PizzaAnalysis])

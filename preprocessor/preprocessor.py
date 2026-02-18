@@ -31,7 +31,7 @@ async def process_text(msg):
         special_instructions_instructions = data.get('special_instructions', "").lower()
         special_instructions_cleaned = clean_text(special_instructions_instructions)
 
-        pizza_recipe_doc = await PizzaRecipe.find_one({"pizza_type":pizza_type})
+        pizza_recipe_doc = await PizzaRecipe.find_one({"pizza_type": pizza_type})
         pizza_recipes_cleaned = ""
         if pizza_recipe_doc:
             pizza_recipes_cleaned = clean_text(pizza_recipe_doc.instructions)
@@ -49,6 +49,7 @@ async def process_text(msg):
     except Exception as e:
         logger.error(f"Error: {e}")
         return None
+
 
 async def worker():
     await mongo_manager.connect(document_models=[PizzaOrders, PizzaRecipe])

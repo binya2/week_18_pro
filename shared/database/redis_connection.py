@@ -2,6 +2,7 @@ import redis.asyncio as redis
 from typing import Optional
 from shared.config import settings
 
+
 class RedisManager:
     def __init__(self):
         self.client: Optional[redis.Redis] = None
@@ -32,5 +33,6 @@ class RedisManager:
         if not self.client:
             raise RuntimeError("Redis not initialized.")
         return self.client
+
 
 redis_manager = RedisManager()

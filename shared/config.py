@@ -1,6 +1,7 @@
 from pydantic import Field
 from pydantic_settings import BaseSettings
 
+
 class Settings(BaseSettings):
     # --- SERVER SETTINGS (הוסף את אלו) ---
     SERVER_HOST: str = Field(default="0.0.0.0")
@@ -34,5 +35,6 @@ class Settings(BaseSettings):
 
     class Config:
         env_file = ".env"
+
 
 settings = Settings()
