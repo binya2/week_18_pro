@@ -68,6 +68,8 @@ spec:
               value: "kafka-pro:29092"
             - name: KAFKA_CONSUMER_TOPIC
               value: "cleaned-instructions"
+            - name: KAFKA_PRODUCER_TOPIC
+              value: "risk_evaluator"
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -95,3 +97,28 @@ spec:
               value: "pizza-orders"
             - name: KAFKA_PRODUCER_TOPIC
               value: "cleaned-instructions"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: risk-evaluator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: risk-evaluator
+  template:
+    metadata:
+      labels:
+        app: risk-evaluator
+    spec:
+      containers:
+        - name: risk-evaluator
+          image: beni2/pizza-risk:v1
+          env:
+            - name: MONGODB_URL
+              value: "mongodb://mongo-pro:27017"
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              value: "kafka-pro:29092"
+            - name: KAFKA_CONSUMER_TOPIC
+              value: "risk-evaluator"

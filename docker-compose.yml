@@ -100,6 +100,22 @@ services:
       - redis_pro
     networks:
       - app-network
+
+  risk_evaluator:
+    build:
+      context: .
+      dockerfile: risk/Dockerfile
+    container_name: risk_evaluator
+    environment:
+      - MONGODB_URL=mongodb://mongo_pro:27017
+      - KAFKA_BOOTSTRAP_SERVERS=kafka_pro:29092
+      - KAFKA_CONSUMER_TOPIC=risk_evaluator
+    depends_on:
+      - kafka_pro
+      - mongo_pro
+    networks:
+      - app-network
+
 networks:
   app-network:
     driver: bridge

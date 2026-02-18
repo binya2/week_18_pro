@@ -36,7 +36,7 @@ class EnrichmentService:
                 for keyword in keywords:
                     pattern = r'\b' + re.escape(keyword.lower()) + r'\b'
                     if re.search(pattern, text):
-                        found.append(keyword)
+                        found.append(keyword.lower())
                 if found:
                     report[category] = found
             return report
@@ -52,18 +52,18 @@ class EnrichmentService:
         rules = await EnrichmentService.get_analysis_rules()
         if not rules:
             logger.warning("No analysis rules found!")
-            return
+            return None
 
         result = await EnrichmentService.analyze_text(recipe_text, rules)
         if not result:
             logger.info(f"Skipping order {order_id}: Analysis returned no result.")
-            return
+            return None
         analysis_result = result["data"]
 
         order = await PizzaOrders.find_one(PizzaOrders.order_id == order_id)
         if not order:
             logger.info(f"Order {order_id} not found in database.")
-            return
+            return None
 
         has_meat = bool(analysis_result.get("meat_ingredients"))
         has_dairy = bool(analysis_result.get("dairy_ingredients"))
@@ -71,6 +71,7 @@ class EnrichmentService:
 
         order.is_meat = has_meat
         order.is_dairy = has_dairy
+
         order.updated_by = result['source']
         order.insert_date = datetime.now()
 
@@ -87,5 +88,10 @@ class EnrichmentService:
 
         logger.info(f"Order {order_id} updated with status {order.status.name}.")
 
-        # order.allergies_flagged = bool(analysis_result.get("common_allergens"))
         await order.save()
+        return {
+            "order_id": order_id,
+            "special_instructions": order_data.get('special_instructions_cleaned'),
+            "common_allergens": analysis_result.get("common_allergens"),
+        }
+
