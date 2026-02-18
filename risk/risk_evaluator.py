@@ -40,7 +40,7 @@ async def risk_evaluator(msg):
 
         order.allergies_flagged = bool(common_allergens)
         order.update_date = datetime.now()
-
+        await order.save()
     except Exception as e:
         logger.error(f"Error: {e}")
         return None

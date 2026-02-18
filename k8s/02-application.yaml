@@ -69,7 +69,7 @@ spec:
             - name: KAFKA_CONSUMER_TOPIC
               value: "cleaned-instructions"
             - name: KAFKA_PRODUCER_TOPIC
-              value: "risk_evaluator"
+              value: "risk-evaluator"
 ---
 apiVersion: apps/v1
 kind: Deployment

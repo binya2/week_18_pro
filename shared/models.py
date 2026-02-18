@@ -25,8 +25,8 @@ class PizzaOrders(Document):
     is_dairy: bool = Field(default=True)
     is_kosher: bool = Field(default=False)
     updated_by: str = Field(default="mongo_db")
-    insert_date: datetime = Field(default=None)
-    update_date: datetime = Field(default=None)
+    insert_date: datetime = Field(default=datetime.min)
+    update_date: datetime = Field(default=datetime.min)
     class Settings:
         name = "pizza_orders"
 
