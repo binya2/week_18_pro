@@ -53,7 +53,7 @@ async def worker():
         topics=[settings.KAFKA_CONSUMER_TOPIC],
         group_id="preprocessor-team"
     )
-    logger.info("Risk Evaluator Worker Started")
+    logger.info("rrisk Evaluator Worker Started")
     try:
         while True:
             msg = consumer.poll(1.0)

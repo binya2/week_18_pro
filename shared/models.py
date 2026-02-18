@@ -20,17 +20,13 @@ class PizzaOrders(Document):
     is_delivery: bool
     special_instructions: str = Field(default="")
     status: Status = Field(default=Status.PREPARING)
-
     allergies_flagged: bool = Field(default=False)
-
     is_meat: bool = Field(default=False)
     is_dairy: bool = Field(default=True)
     is_kosher: bool = Field(default=False)
     updated_by: str = Field(default="mongo_db")
-
     insert_date: datetime = Field(default=None)
     update_date: datetime = Field(default=None)
-
     class Settings:
         name = "pizza_orders"
 
