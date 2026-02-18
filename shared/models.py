@@ -2,7 +2,7 @@ from enum import Enum
 from typing import Optional, List
 from datetime import datetime
 from beanie import Document
-from pydantic import Field, BaseModel
+from pydantic import Field, BaseModel, field_serializer
 
 
 class Status(str, Enum):
@@ -19,14 +19,23 @@ class PizzaOrders(Document):
     quantity: int = Field(default=1)
     is_delivery: bool
     special_instructions: str = Field(default="")
+
     status: Status = Field(default=Status.PREPARING)
+
     allergies_flagged: bool = Field(default=False)
     is_meat: bool = Field(default=False)
     is_dairy: bool = Field(default=True)
     is_kosher: bool = Field(default=False)
     updated_by: str = Field(default="mongo_db")
+
     insert_date: datetime = Field(default=datetime(2020, 1, 1, 12, 0, 0))
     update_date: datetime = Field(default=datetime(2020, 1, 1, 12, 0, 0))
+
+    @field_serializer('insert_date', 'update_date')
+    def serialize_dt(self, dt: datetime, _info):
+        if dt is None:
+            return None
+        return dt.strftime('%Y-%m-%d %H:%M:%S')
     class Settings:
         name = "pizza_orders"
 

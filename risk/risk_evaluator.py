@@ -37,7 +37,7 @@ async def risk_evaluator(msg):
 
         if is_allergic:
             order.status = Status.CANCELLED
-
+        logger.info(f"Order {order_id} updated with status {order.status.name}.")
         order.allergies_flagged = bool(common_allergens)
         order.update_date = datetime.now()
         await order.save()
